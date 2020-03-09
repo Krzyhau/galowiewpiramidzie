@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -91,7 +91,7 @@
         <p>gupia apka autorstwa Krzyhau | <a href="https://github.com/Krzyhau/galowiewpiramidzie" target="_blank">Zobacz kod źródłowy</a></p>
         <p>Film "Asterix & Obelix: Misja Kleopatra" jest własnością Miramax Films</p>
     </div>
-    <video id="video">
+    <video id="video" style="display:none">
         <source preload="tak" src="vid.mp4" type="video/mp4">
         <p class="vjs-no-js">WŁĄCZ JAVASCRIPTY!!!</p>
     </video>
@@ -314,6 +314,7 @@
         function rozpocznij(){
             rozpoczety=true;
             document.querySelector("#interfejs").style.display = "none";
+            video.style.display = "";
         }
 
 
