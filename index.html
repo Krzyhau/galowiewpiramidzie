@@ -103,15 +103,16 @@
         //lista klipów w widele, razem z listą proponowanych następnych klipów 
         //(bo panoramix sie pojawia zaraz za panoramixem smh)
         const klipy = [
-            {start:0.0, koniec:5.8, nastepny:[1,4,5]},
-            {start:6.0, koniec:9.2, nastepny:[2,0,3]},
-            {start:9.4, koniec:14.5, nastepny:[3,0,1,4]},
-            {start:14.7, koniec:16.4, nastepny:[4,1,2,5]},
-            {start:16.6, koniec:20.3, nastepny:[5,1,2,3]},
-            {start:20.5, koniec:24.6, nastepny:[2,1,0,3,4]},
-            {start:24.9, koniec:33.8, nastepny:[0,1,2,3,4,5,6]},
-            {start:34.0, koniec:40.0, nastepny:[0,1,2,3,4,5]}
-        ]
+            {start:0.0, koniec:5.8, nastepny:[1,3,5,6]}, //panoramix
+            {start:6.0, koniec:9.2, nastepny:[2,0,4]}, //obelix i asterix
+            {start:9.4, koniec:11.8, nastepny:[3,1,5,6]}, //panoramix
+            {start:11.9, koniec:14.5, nastepny:[4,1,2,0,5]}, //asterix
+            {start:14.7, koniec:16.4, nastepny:[5,3,1,6]}, //panoramix
+            {start:16.6, koniec:20.3, nastepny:[6,2,3,4,0]}, //obelix
+            {start:20.5, koniec:24.6, nastepny:[0,1,2,4,5]}, //asterix
+            {start:24.9, koniec:33.8, nastepny:[0,1,2,3,4,5,6,7]}, //10 raz się tu spotykamy
+            {start:34.0, koniec:40.0, nastepny:[0,1,2,3,4,5,6]} //robi sie nieciekawie
+        ];
 
         let losowaKolejka = null;
         function anulujLosoweKlipy(){
@@ -120,11 +121,26 @@
         }
 
         var poprzedniKlip = -1;
+        var uzyteKlipy = [];
         function puscWideoLosowo(maxKlipow){
             if(losowaKolejka)return;
             let klip = 0;
             if(poprzedniKlip>=0){
-                klip = klipy[poprzedniKlip].nastepny[0];
+                let wszystkieUzyte = true;
+                for(let i=0;i<klipy[poprzedniKlip].nastepny.length;i++){
+                    let nowyKlip = klipy[poprzedniKlip].nastepny[i];
+                    if(!uzyteKlipy[nowyKlip]){
+                        klip = nowyKlip;
+                        wszystkieUzyte = false;
+                        uzyteKlipy[nowyKlip] = true;
+                        break;
+                    }
+                }
+                if(wszystkieUzyte){
+                    klip = klipy[poprzedniKlip].nastepny[0];
+                    uzyteKlipy = [];
+                }
+                
                 shuffle(klipy[poprzedniKlip].nastepny)
             }
 
@@ -256,18 +272,18 @@
             if(nazwa=="end"){
                 setTimeout(function(){
                     anulujLosoweKlipy();
-                    puscWideo(6);
+                    puscWideo(7);
                 },opoznienie);
             }
             if(nazwa=="cisza1"){
                 setTimeout(function(){
-                    puscWideoLosowo(6);
+                    puscWideoLosowo(7);
                 },opoznienie);
             }
             if(nazwa=="nieciekawie"){
                 setTimeout(function(){
                     anulujLosoweKlipy();
-                    puscWideo(7);
+                    puscWideo(8);
                 },opoznienie);
             }
 
