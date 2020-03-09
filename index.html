@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zgubieni Galowie</title>
+    <style>
+        body{
+            background:#000;
+            color:white;
+            overflow:hidden;
+            margin:0;
+            display:flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height:100vh;
+            width:100vw;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        p{
+            margin:5px;
+        }
+        a{
+            color: lightblue;
+        }
+        video{
+            width:100%;
+        }
+        #interfejs{
+            position:fixed;
+            text-align: center;
+            top:0;
+            display:flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background:black;
+            width:100vw;
+            height:100vh;
+        }
+        
+        #logo{
+            margin-bottom:50px;
+            width:50vw;
+        }
+
+        #rozpocznijBtn{
+            display:inline-block;
+            width: 0;
+            height: 0;
+            color:white;
+            border-style: solid;
+            border-width: 50px 0 50px 80px;
+            border-color: #000 #000 #000 #eeef;
+            cursor: pointer;
+            margin-bottom:20px;
+        }
+        .progress{
+            margin-top:50px;
+            display:inline-block;
+            width:300px;
+            height:20px;
+            outline: 5px solid white;
+            margin-bottom:50px;
+        }
+
+        #progressBar{
+            height:100%;
+            background:white;
+        }
+    </style>
+    <script>
+        function shuffle(a) {
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+    </script>
+</head>
+<body>
+    <div id="interfejs">
+        <img id="logo" src="logo.jpg">
+        <div class="progress"><div id="progressBar"></div></div>
+        <button style="display:none" id="rozpocznijBtn" onclick="rozpocznij()" disabled="tak, jak dla mnie tak prosze pani"></button>
+        <p>gupia apka autorstwa Krzyhau | <a href="https://github.com/Krzyhau/galowiewpiramidzie" target="_blank">Zobacz kod źródłowy</a></p>
+        <p>Film "Asterix & Obelix: Misja Kleopatra" jest własnością Miramax Films</p>
+    </div>
+    <video id="video">
+        <source preload="tak" src="vid.mp4" type="video/mp4">
+        <p class="vjs-no-js">WŁĄCZ JAVASCRIPTY!!!</p>
+    </video>
+    
+    <script>
+        //setup wideła
+        const video = document.querySelector("#video");
+
+        //lista klipów w widele, razem z listą proponowanych następnych klipów 
+        //(bo panoramix sie pojawia zaraz za panoramixem smh)
+        const klipy = [
+            {start:0.0, koniec:5.8, nastepny:[1,4,5]},
+            {start:6.0, koniec:9.2, nastepny:[2,0,3]},
+            {start:9.4, koniec:14.5, nastepny:[3,0,1,4]},
+            {start:14.7, koniec:16.4, nastepny:[4,1,2,5]},
+            {start:16.6, koniec:20.3, nastepny:[5,1,2,3]},
+            {start:20.5, koniec:24.6, nastepny:[2,1,0,3,4]},
+            {start:24.9, koniec:33.8, nastepny:[0,1,2,3,4,5,6]},
+            {start:34.0, koniec:40.0, nastepny:[0,1,2,3,4,5]}
+        ]
+
+        let losowaKolejka = null;
+        function anulujLosoweKlipy(){
+            clearTimeout(losowaKolejka);
+            losowaKolejka = null;
+        }
+
+        var poprzedniKlip = -1;
+        function puscWideoLosowo(maxKlipow){
+            if(losowaKolejka)return;
+            let klip = 0;
+            if(poprzedniKlip>=0){
+                klip = klipy[poprzedniKlip].nastepny[0];
+                shuffle(klipy[poprzedniKlip])
+            }
+
+            let czas = puscWideo(klip);
+            losowaKolejka = setTimeout(function(){
+                losowaKolejka = null;
+                puscWideoLosowo(maxKlipow);
+            },czas*1000);
+
+            poprzedniKlip=klip;
+        }
+
+        function puscWideo(klip, spauzuj=false){
+            video.currentTime = klipy[klip].start;
+            video.play();
+            let czas = klipy[klip].koniec-klipy[klip].start;
+            if(spauzuj)setTimeout(function(){
+                video.pause();
+            },czas*1000);
+            return czas;
+        }
+
+
+        //setup dźwienku
+
+        const dzwieki = [];
+        var dzwiekiLadowanie = 0;
+        var razySieTuSpotykamy = 0;
+        const dzwiekNazwy = [
+            "a-o1","a-o2","a-o3","a-ooo","a-tu",
+            "o-a","o-p1","o-p2","o-tutaj","o-uuu",
+            "p-nie", "p-tak",
+            "10raz", "nieciekawie", "cisza1", "cisza2", "end", "arch"
+        ];
+
+        for(let dzwiekNazwa of dzwiekNazwy){
+            let dzwiek = new Audio('snd/'+dzwiekNazwa+'.wav');
+            dzwieki[dzwiekNazwa] = dzwiek;
+        }
+
+        //lookup-table dla dialogów, żeby uniknąć głupich połączeń (Panoramix? Nie, Panoramix!)
+        //Kwestie Panoramixa podwojone bo coś go mało
+        dzwieki["a-o1"].nastepny = ["o-a", "o-uuu", "o-tutaj", "a-ooo", "cisza1", "cisza2"];
+        dzwieki["o-p1"].nastepny = ["p-tak", "o-uuu", "cisza1", "cisza2"];
+        dzwieki["p-tak"].nastepny = ["o-p1", "o-p2", "o-uuu", "o-tutaj", "cisza1", "cisza2"];
+        dzwieki["o-p2"].nastepny = ["a-o1", "p-tak", "p-tak", "o-uuu", "a-o2", "a-o3", "cisza1", "cisza2"];
+        dzwieki["a-o2"].nastepny = ["o-p1", "o-p2", "p-nie","p-nie", "o-a", "o-uuu", "a-ooo", "o-tutaj", "cisza1", "cisza2"];
+        dzwieki["p-nie"].nastepny = ["a-o1", "a-o2", "a-o3", "o-p1", "o-p2", "o-a", "cisza1", "cisza2"];
+        dzwieki["o-a"].nastepny = ["a-o1", "a-o2", "a-o3", "p-nie","p-nie", "o-uuu", "a-tu", "a-ooo", "o-tutaj", "cisza1", "cisza2"];
+        dzwieki["o-uuu"].nastepny = ["a-o1", "a-o2", "a-o3", "a-tu", "a-ooo", "o-tutaj", "cisza1", "cisza2"];
+        dzwieki["a-tu"].nastepny = ["a-o1", "a-o2", "a-o3","o-p1", "o-p2", "o-a", "o-uuu", "a-ooo", "o-tutaj", "cisza1", "cisza2"];
+        dzwieki["a-ooo"].nastepny = ["a-o1", "a-o2", "a-o3","o-p1", "o-p2", "o-a", "o-uuu", "a-tu", "o-tutaj", "cisza1", "cisza2"];
+        dzwieki["o-tutaj"].nastepny = ["a-o1", "a-o2", "a-o3","o-uuu", "a-tu", "a-ooo", "cisza1", "cisza2"];
+        dzwieki["a-o3"].nastepny = ["p-nie","p-nie", "o-a", "o-uuu", "a-ooo", "o-tutaj", "cisza1", "cisza2"];
+
+        dzwieki["cisza1"].nastepny = ["o-a","a-o1", "a-o2", "a-o3","o-p1", "o-p2"];
+        dzwieki["cisza2"].nastepny = dzwieki["cisza1"].nastepny;
+
+
+        function generujSekwencje(){
+            let sekwencja = [];
+            if(razySieTuSpotykamy==0){
+                //użycie oryginalnej sekwencji za pierwszym razem
+                sekwencja = 
+                    ["cisza1", "a-o1", "cisza2", "o-p1", "p-tak", "o-p2", "a-o2", 
+                    "p-nie", "o-a", "o-uuu", "a-tu", "a-ooo", "o-tutaj", "a-o3"];
+            }else{
+                sekwencja.push("cisza1");
+                //generowanie sekwencji dialogowej dwa razy
+                let poprzedni = "cisza1";
+                for(let e=0;e<2;e++){
+                    let uzyte = [];
+                    for(let i=0;true;i++){
+                        //generowanie dźwięku na podstawie losowej tabeli
+                        let zakoncz = true;
+                        let nastepne = shuffle(dzwieki[poprzedni].nastepny);
+                        for (let d = 0; i < nastepne.length; d++) {
+                            let dNazwa = nastepne[d];
+                            if(!uzyte[dNazwa]){
+                                sekwencja.push(dNazwa);
+                                uzyte[dNazwa] = true;
+                                poprzedni = dNazwa;
+                                zakoncz = false;
+                                break;
+                            }
+                        }
+                        if(zakoncz)break;  
+                    }
+                }
+            }
+            
+            
+            //generowanie zakończenia
+            sekwencja.push("end");
+            razySieTuSpotykamy++;
+            if(razySieTuSpotykamy==10){
+                sekwencja.push("10raz");
+                sekwencja.push("arch");
+                sekwencja.push("nieciekawie");
+            }else{
+                if(Math.random()<0.3)sekwencja.push("arch");
+                if(Math.random()<0.3)sekwencja.push("nieciekawie");
+            }
+            
+            return sekwencja;
+        }
+
+        
+
+        function puscSekwencje(){
+            let sekwencja = generujSekwencje();
+            console.log("Puszczanie sekwencji: ", sekwencja)
+            let opoznienie = 0;
+            for(let i=0;i<sekwencja.length;i++){
+                let dzwiek = sekwencja[i];
+                let dlugosc = puscDzwiek(dzwiek, opoznienie);
+                opoznienie += dlugosc - 100;
+            }
+            return opoznienie;
+        }
+
+        function puscDzwiek(nazwa, opoznienie){
+            setTimeout(function(){
+                dzwieki[nazwa].play();
+            }, opoznienie);
+            let dlugosc = dzwieki[nazwa].duration*1000;
+
+            //granie specjalnych filmów
+            if(nazwa=="end"){
+                setTimeout(function(){
+                    anulujLosoweKlipy();
+                    puscWideo(6);
+                },opoznienie);
+            }
+            if(nazwa=="cisza1"){
+                setTimeout(function(){
+                    puscWideoLosowo(6);
+                },opoznienie);
+            }
+            if(nazwa=="nieciekawie"){
+                setTimeout(function(){
+                    anulujLosoweKlipy();
+                    puscWideo(7);
+                },opoznienie);
+            }
+
+            return dlugosc;
+        }
+
+        function sprawdzLadowanie(){
+            dzwiekiLadowanie = 0;
+            for(let i=0;i<dzwiekNazwy.length;i++){
+                if(dzwieki[dzwiekNazwy[i]].readyState==4)dzwiekiLadowanie++;
+            }
+            
+
+            return (dzwiekiLadowanie/dzwiekNazwy.length + (video.readyState==4 ? 1 : 0))/2;
+        }
+
+        var zaladowany = false;
+        var rozpoczety = false;
+
+        const rozpocznijBtn = document.querySelector("#rozpocznijBtn");
+        const progressBar = document.querySelector("#progressBar");
+
+        function update(){
+            let delta = 0.2;
+            if(zaladowany){
+                rozpocznijBtn.disabled = false;
+                if(rozpoczety){
+                    delta = puscSekwencje();
+                }
+            }else{
+                let stan = sprawdzLadowanie()
+                progressBar.style.width = Math.floor(stan*100) + "%";
+                zaladowany = stan==1;
+                if(zaladowany){
+                    rozpocznijBtn.style.display = "";
+                    progressBar.parentNode.style.display = "none";
+                }
+            }
+            setTimeout(update,delta);
+        }
+        update();
+
+
+        function rozpocznij(){
+            rozpoczety=true;
+            document.querySelector("#interfejs").style.display = "none";
+        }
+
+
+        // function LosowyDzwiek(){
+        //     let rand = Math.floor(Math.random() * dzwiekNazwy.length);
+        //     for(let dzwiek of dzwiekNazwy){
+        //         console.log(dzwiek);
+        //         dzwieki[dzwiek].pause();
+        //         dzwieki[dzwiek].currentTime = 0;
+        //     }
+        //     if(dzwieki[dzwiekNazwy[rand]])dzwieki[dzwiekNazwy[rand]].play();
+            
+        //     console.log(rand, dzwieki[dzwiekNazwy[rand]]);
+        // }
+    </script>
+</body>
+</html>
